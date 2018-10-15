@@ -74,7 +74,7 @@ func (r Roll) startContest(msg Message) string {
 
 func (r Roll) finishContest(msg Message) {
 	isRolling = false
-	response := "```Results\n"
+	response := "``` Results\n"
 	var max rollResult
 	for _, value := range rollResults {
 		response += value.user.username + ": " + strconv.Itoa(value.result) + "\n"
