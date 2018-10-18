@@ -85,6 +85,10 @@ func parseMessage(m *discordgo.MessageCreate) Message {
 	return msg
 }
 
+func processCommand(cmd Command, msg Message) string {
+	return cmd.Process(msg)
+}
+
 type User struct {
 	id string
 	username string
@@ -98,10 +102,11 @@ type Message struct {
 	user User
 }
 
-type Command interface {
-    Process(msg Message) string
+type Help struct {
+	cmd string
+	desc string
 }
 
-func processCommand(cmd Command, msg Message) string {
-	return cmd.Process(msg)
+type Command interface {
+    Process(msg Message) string
 }

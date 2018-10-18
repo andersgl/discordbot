@@ -21,6 +21,8 @@ func (r Roll) Process(msg Message) string {
 	switch msg.action {
 		case "start":
 			return r.startContest(msg)
+		case "help":
+			return r.help()
 		default:
 			return r.rollNow(msg.user)
 	}
@@ -86,6 +88,18 @@ func (r Roll) finishContest(msg Message) {
 	response += "```"
 	rollResults = make(map[string]rollResult)
 	SendMessage(msg.channel, response)
+}
+
+func (r Roll) help() string {
+	response := "**Commands:**\n"
+	helpers := []Help{
+		{"!roll", "just roll"},
+		{"!roll start <time> <prize here>", "start a roll contest for a specified time and prize"},
+	}
+	for _, helper := range helpers {
+		response += "**" + helper.cmd + "** - " + helper.desc + "\n"
+    }
+	return response
 }
 
 func randomInt(min, max int) int {
