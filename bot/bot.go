@@ -9,6 +9,8 @@ import (
 	
 	"github.com/bwmarrin/discordgo"
 	"github.com/andersgl/discordbot/conf"
+	"github.com/andersgl/discordbot/bot/message"
+	"github.com/andersgl/discordbot/bot/match"
 )
 
 var (
@@ -46,8 +48,8 @@ func Start(config conf.Conf) {
 	dg.Close()
 }
 
-func SendMessage(channel string, message string) {
-	DiscordConnection.ChannelMessageSend(channel, message)
+func SendMessage(channel string, msg string) {
+	DiscordConnection.ChannelMessageSend(channel, msg)
 }
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
@@ -61,23 +63,25 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.HasPrefix(m.Content, Config.CommandTrigger) {
-		msg := parseMessage(m)
-		if len(msg.command) > 0 {
+		msg := message.Parse(m)
+		if len(msg.Command) > 0 {
 			var response string
 
-			if CommandDisabled(msg.command) >= 0 {
+			if commandDisabled(msg.Command) >= 0 {
 				return
 			}
 			
-			switch msg.command {
+			switch msg.Command {
 				case "enable":
-					response = EnableCommand(msg.action)
+					response = enableCommand(msg.Action)
 				case "disable":
-					response = DisableCommand(msg.action)
+					response = disableCommand(msg.Action)
 				case "roll":
 					response = processCommand(Roll{}, msg)
 				case "prac":
 					response = processCommand(Prac{}, msg)
+				case "match":
+					response = processCommand(match.Match{}, msg)
 			}
 
 			s.ChannelMessageSend(m.ChannelID, response)
@@ -85,27 +89,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func parseMessage(m *discordgo.MessageCreate) Message {
-	user := User{id: m.Author.ID, username: m.Author.Username}
-	msg := Message{user: user, channel: m.ChannelID}
-	parts := strings.Split(m.Content[1:], " ")
-	if len(parts) > 0 {
-		msg.command = parts[0]
-	}
-	if len(parts) > 1 {
-		msg.action = parts[1]
-	}
-	if len(parts) > 2 {
-		msg.args = parts[2:]
-	}
-	return msg
-}
-
-func processCommand(cmd Command, msg Message) string {
+func processCommand(cmd Command, msg message.Message) string {
 	return cmd.Process(msg)
 }
 
-func CommandDisabled(cmd string) int {
+func commandDisabled(cmd string) int {
     for k, a := range Config.DisabledCmds {
         if a == cmd {
             return k
@@ -114,8 +102,8 @@ func CommandDisabled(cmd string) int {
     return -1
 }
 
-func EnableCommand(cmd string) string {
-	index := CommandDisabled(cmd)
+func enableCommand(cmd string) string {
+	index := commandDisabled(cmd)
 	if index >= 0 {
 		Config.DisabledCmds = append(Config.DisabledCmds[:index], Config.DisabledCmds[index+1:]...)
 		return cmd + " is now enabled."
@@ -124,26 +112,13 @@ func EnableCommand(cmd string) string {
 	return cmd + " already enabled."
 }
 
-func DisableCommand(cmd string) string {
-	if CommandDisabled(cmd) == -1 {
+func disableCommand(cmd string) string {
+	if commandDisabled(cmd) == -1 {
 		Config.DisabledCmds = append(Config.DisabledCmds, cmd)
 		return cmd + " is now disabled."
 	}
 	fmt.Println("disabled", Config.DisabledCmds)
 	return cmd + " already disabled."
-}
-
-type User struct {
-	id string
-	username string
-}
-
-type Message struct {
-	command string
-	action string
-	args []string
-	channel string
-	user User
 }
 
 type Help struct {
@@ -152,5 +127,5 @@ type Help struct {
 }
 
 type Command interface {
-    Process(msg Message) string
+    Process(msg message.Message) string
 }

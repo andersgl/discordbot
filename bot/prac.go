@@ -2,12 +2,13 @@ package bot
 
 import (
 	// "fmt"
+	"github.com/andersgl/discordbot/bot/message"
 )
 
 type Prac struct {}
 
-func (p Prac) Process(msg Message) string {
-	switch msg.action {
+func (p Prac) Process(msg message.Message) string {
+	switch msg.Action {
 		case "help":
 			return p.help()
 		case "yes", "no":
@@ -17,11 +18,11 @@ func (p Prac) Process(msg Message) string {
 	}
 }
 
-func (p Prac) summary(msg Message) string {
+func (p Prac) summary(msg message.Message) string {
 	return "Summary"
 }
 
-func (p Prac) update(msg Message) string {
+func (p Prac) update(msg message.Message) string {
 	return "Summary"
 }
 

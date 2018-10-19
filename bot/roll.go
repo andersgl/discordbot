@@ -5,50 +5,51 @@ import (
 	"strconv"
 	"time"
 	"strings"
+	"github.com/andersgl/discordbot/bot/message"
 )
 
 type Roll struct {}
 
 type rollResult struct {
-	user User
+	user message.User
 	result int
 }
 
 var rollResults = make(map[string]rollResult)
 var isRolling bool = false
 
-func (r Roll) Process(msg Message) string {
-	switch msg.action {
+func (r Roll) Process(msg message.Message) string {
+	switch msg.Action {
 		case "start":
 			return r.startContest(msg)
 		case "help":
 			return r.help()
 		default:
-			return r.rollNow(msg.user)
+			return r.rollNow(msg.User)
 	}
 }
 
-func (r Roll) rollNow(user User) string {
+func (r Roll) rollNow(user message.User) string {
 	result := randomInt(1,100)
 	if isRolling {
-		_, ok := rollResults[user.id]
+		_, ok := rollResults[user.Id]
 		if ok {
 			return "You can only roll once!"
 		} else {
-			rollResults[user.id] = rollResult{user, result}
-			return user.username + " rolled, wait for results."
+			rollResults[user.Id] = rollResult{user, result}
+			return user.Username + " rolled, wait for results."
 		}
 	}
-	return user.username + " rolls ... " + strconv.Itoa(result)
+	return user.Username + " rolls ... " + strconv.Itoa(result)
 }
 
-func (r Roll) startContest(msg Message) string {
+func (r Roll) startContest(msg message.Message) string {
 	if isRolling {
 		return "A contest is already rollin' ..."
 	}
 	timeout := 10
-	if len(msg.args) > 0 {
-		userTimeout, _ := strconv.Atoi(msg.args[0])
+	if len(msg.Args) > 0 {
+		userTimeout, _ := strconv.Atoi(msg.Args[0])
 		if userTimeout > 0 {
 			timeout = userTimeout
 		}
@@ -62,8 +63,8 @@ func (r Roll) startContest(msg Message) string {
     })
 
 	var prize string
-	if len(msg.args) > 1 {
-		prize = strings.Join(msg.args[1:], " ")
+	if len(msg.Args) > 1 {
+		prize = strings.Join(msg.Args[1:], " ")
 	}
 
 	response := "Starting !roll contest."
@@ -74,20 +75,20 @@ func (r Roll) startContest(msg Message) string {
 	return response
 }
 
-func (r Roll) finishContest(msg Message) {
+func (r Roll) finishContest(msg message.Message) {
 	isRolling = false
 	response := "``` Results\n"
 	var max rollResult
 	for _, value := range rollResults {
-		response += value.user.username + ": " + strconv.Itoa(value.result) + "\n"
+		response += value.user.Username + ": " + strconv.Itoa(value.result) + "\n"
 		if value.result > max.result {
 			max = value
 		}
 	}
-	response += "... and the winner is: " + max.user.username
+	response += "... and the winner is: " + max.user.Username
 	response += "```"
 	rollResults = make(map[string]rollResult)
-	SendMessage(msg.channel, response)
+	SendMessage(msg.Channel, response)
 }
 
 func (r Roll) help() string {
