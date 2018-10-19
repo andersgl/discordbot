@@ -8,13 +8,19 @@ import (
 	"strings"
 	
 	"github.com/bwmarrin/discordgo"
+	"github.com/andersgl/discordbot/conf"
 )
 
-var DiscordConnection *discordgo.Session
+var (
+	DiscordConnection *discordgo.Session
+	Config conf.Conf
+)
 
-func Connect(token string) {
+func Start(config conf.Conf) {
+	Config = config
+
 	// Create a new Discord session using the provided bot token.
-	dg, err := discordgo.New("Bot " + token)
+	dg, err := discordgo.New("Bot " + Config.Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
@@ -54,14 +60,24 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if strings.HasPrefix(m.Content, "!") {
+	if strings.HasPrefix(m.Content, Config.CommandTrigger) {
 		msg := parseMessage(m)
 		if len(msg.command) > 0 {
 			var response string
+
+			if CommandDisabled(msg.command) >= 0 {
+				return
+			}
 			
 			switch msg.command {
+				case "enable":
+					response = EnableCommand(msg.action)
+				case "disable":
+					response = DisableCommand(msg.action)
 				case "roll":
 					response = processCommand(Roll{}, msg)
+				case "prac":
+					response = processCommand(Prac{}, msg)
 			}
 
 			s.ChannelMessageSend(m.ChannelID, response)
@@ -87,6 +103,34 @@ func parseMessage(m *discordgo.MessageCreate) Message {
 
 func processCommand(cmd Command, msg Message) string {
 	return cmd.Process(msg)
+}
+
+func CommandDisabled(cmd string) int {
+    for k, a := range Config.DisabledCmds {
+        if a == cmd {
+            return k
+        }
+    }
+    return -1
+}
+
+func EnableCommand(cmd string) string {
+	index := CommandDisabled(cmd)
+	if index >= 0 {
+		Config.DisabledCmds = append(Config.DisabledCmds[:index], Config.DisabledCmds[index+1:]...)
+		return cmd + " is now enabled."
+	}
+	fmt.Println("enabled", Config.DisabledCmds)
+	return cmd + " already enabled."
+}
+
+func DisableCommand(cmd string) string {
+	if CommandDisabled(cmd) == -1 {
+		Config.DisabledCmds = append(Config.DisabledCmds, cmd)
+		return cmd + " is now disabled."
+	}
+	fmt.Println("disabled", Config.DisabledCmds)
+	return cmd + " already disabled."
 }
 
 type User struct {

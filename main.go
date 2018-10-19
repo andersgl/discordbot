@@ -3,19 +3,24 @@ package main
 import (
 	"flag"
 
+	"github.com/andersgl/discordbot/conf"
 	"github.com/andersgl/discordbot/bot"
 )
 
 // Variables used for command line parameters
 var (
-	Token string
+	token string
 )
 
 func init() {
-	flag.StringVar(&Token, "t", "", "Bot Token")
+	flag.StringVar(&token, "t", "", "Bot Token")
 	flag.Parse()
 }
 
 func main() {
-	bot.Connect(Token)
+	config, _ := conf.Load()
+	if len(token) > 0 {
+		config.Token = token
+	}
+	bot.Start(config)
 }
