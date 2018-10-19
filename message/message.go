@@ -12,16 +12,24 @@ type User struct {
 }
 
 type Message struct {
+	IsCommand bool
 	Command string
 	Action string
 	Args []string
 	Channel string
 	User User
+	MessageCreate *discordgo.MessageCreate
+	Session *discordgo.Session
 }
 
-func Parse(m *discordgo.MessageCreate) Message {
+func Parse(m *discordgo.MessageCreate, s *discordgo.Session, trigger string) Message {
 	user := User{Id: m.Author.ID, Username: m.Author.Username}
-	msg := Message{User: user, Channel: m.ChannelID}
+	msg := Message{
+		IsCommand: strings.HasPrefix(m.Content, trigger), 
+		User: user, 
+		Channel: m.ChannelID, 
+		MessageCreate: m,
+		Session: s}
 	parts := strings.Split(m.Content[1:], " ")
 	if len(parts) > 0 {
 		msg.Command = parts[0]

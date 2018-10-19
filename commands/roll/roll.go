@@ -1,11 +1,13 @@
-package bot
+package roll
 
 import (
 	"math/rand"
 	"strconv"
 	"time"
 	"strings"
-	"github.com/andersgl/discordbot/bot/message"
+
+	"github.com/andersgl/discordbot/message"
+	"github.com/andersgl/discordbot/help"
 )
 
 type Roll struct {}
@@ -88,17 +90,18 @@ func (r Roll) finishContest(msg message.Message) {
 	response += "... and the winner is: " + max.user.Username
 	response += "```"
 	rollResults = make(map[string]rollResult)
-	SendMessage(msg.Channel, response)
+	
+	msg.Session.ChannelMessageSend(msg.Channel, response)
 }
 
 func (r Roll) help() string {
 	response := "**Commands:**\n"
-	helpers := []Help{
+	helpers := []help.Help{
 		{"!roll", "just roll"},
 		{"!roll start <time> <prize here>", "start a roll contest for a specified time and prize"},
 	}
 	for _, helper := range helpers {
-		response += "**" + helper.cmd + "** - " + helper.desc + "\n"
+		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
     }
 	return response
 }

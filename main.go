@@ -2,14 +2,26 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/andersgl/discordbot/conf"
-	"github.com/andersgl/discordbot/bot"
+	"github.com/andersgl/discordbot/message"
+	"github.com/andersgl/discordbot/forlulz"
+
+	// Command packages go here
+	"github.com/andersgl/discordbot/commands/roll"
+	"github.com/andersgl/discordbot/commands/prac"
+	"github.com/andersgl/discordbot/commands/match"
 )
 
 // Variables used for command line parameters
 var (
 	token string
+	Config conf.Conf
 )
 
 func init() {
@@ -18,9 +30,107 @@ func init() {
 }
 
 func main() {
-	config, _ := conf.Load()
+	Config = conf.Load()
 	if len(token) > 0 {
-		config.Token = token
+		Config.Token = token
 	}
-	bot.Start(config)
+
+	// Create a new Discord session using the provided bot token.
+	dg, err := discordgo.New("Bot " + Config.Token)
+	if err != nil {
+		fmt.Println("error creating Discord session,", err)
+		return
+	}
+
+	dg.AddHandler(messageCreate)
+
+	// Open a websocket connection to Discord and begin listening.
+	err = dg.Open()
+	if err != nil {
+		fmt.Println("error opening connection,", err)
+		return
+	}
+
+	// Wait here until CTRL-C or other term signal is received.
+	fmt.Println("Bot is now running. Press CTRL-C to exit.")
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	<-sc
+
+	// Cleanly close down the Discord session.
+	dg.Close()
+}
+
+func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// Ignore all messages created by the bot itself
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+
+	var response string
+	msg := message.Parse(m, s, Config.CommandTrigger)
+	if msg.IsCommand {
+		if commandDisabled(msg.Command) >= 0 {
+			return
+		}
+		
+		switch msg.Command {
+			// Enable a command
+			case "enable":
+				response = enableCommand(msg.Action)
+			// Disable a command
+			case "disable":
+				response = disableCommand(msg.Action)
+			
+			// Specific commands
+			case "roll":
+				response = processCommand(roll.Roll{}, msg)
+			case "prac":
+				response = processCommand(prac.Prac{}, msg)
+			case "match":
+				response = processCommand(match.Match{}, msg)
+		}		
+	} else {
+		response = forlulz.LOL(msg)
+	}
+
+	if len(response) > 0 {
+		s.ChannelMessageSend(m.ChannelID, response)
+	}
+}
+
+func processCommand(cmd Command, msg message.Message) string {
+	return cmd.Process(msg)
+}
+
+func commandDisabled(cmd string) int {
+    for k, a := range Config.DisabledCmds {
+        if a == cmd {
+            return k
+        }
+    }
+    return -1
+}
+
+func enableCommand(cmd string) string {
+	index := commandDisabled(cmd)
+	if index >= 0 {
+		Config.DisabledCmds = append(Config.DisabledCmds[:index], Config.DisabledCmds[index+1:]...)
+		return cmd + " is now enabled."
+	}
+	fmt.Println("enabled", Config.DisabledCmds)
+	return cmd + " already enabled."
+}
+
+func disableCommand(cmd string) string {
+	if commandDisabled(cmd) == -1 {
+		Config.DisabledCmds = append(Config.DisabledCmds, cmd)
+		return cmd + " is now disabled."
+	}
+	fmt.Println("disabled", Config.DisabledCmds)
+	return cmd + " already disabled."
+}
+
+type Command interface {
+    Process(msg message.Message) string
 }

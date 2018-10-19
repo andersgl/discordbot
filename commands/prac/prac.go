@@ -1,8 +1,8 @@
-package bot
+package prac
 
 import (
-	// "fmt"
-	"github.com/andersgl/discordbot/bot/message"
+	"github.com/andersgl/discordbot/message"
+	"github.com/andersgl/discordbot/help"
 )
 
 type Prac struct {}
@@ -28,14 +28,14 @@ func (p Prac) update(msg message.Message) string {
 
 func (p Prac) help() string {
 	response := "**Commands:**\n"
-	helpers := []Help{
+	helpers := []help.Help{
 		{"!prac", "get a prac summary"},
 		{"!prac yes <game>", "sign up for prac today (game is optional)"},
 		{"!prac no <game>", "let people know you can't prac today (game is optional)"},
 		{"!prac remove <game>", "remove yourself from the prac entry (game is optional)"},
 	}
 	for _, helper := range helpers {
-		response += "**" + helper.cmd + "** - " + helper.desc + "\n"
+		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
     }
 	return response
 }

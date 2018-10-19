@@ -12,7 +12,7 @@ type Conf struct {
 	DisabledCmds []string `json:"DisabledCmds"`
 }
 
-func Load() (Conf, error) {
+func Load() Conf {
     var config Conf
     configFile, err := os.Open("conf/config.json")
     defer configFile.Close()
@@ -21,5 +21,5 @@ func Load() (Conf, error) {
     }
     jsonParser := json.NewDecoder(configFile)
     err = jsonParser.Decode(&config)
-    return config, err
+    return config
 }
