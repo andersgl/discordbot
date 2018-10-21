@@ -23,7 +23,7 @@ type Message struct {
 }
 
 func (msg Message) Respond(response string) {
-	msg.Session.ChannelMessageSendTTS(msg.MessageCreate.ChannelID, response)
+	msg.Session.ChannelMessageSend(msg.MessageCreate.ChannelID, response)
 }
 
 func (msg Message) RespondTTS(response string) {

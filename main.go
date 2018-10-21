@@ -67,7 +67,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	var response string
 	msg := message.New(m, s, conf.CommandTrigger, conf.Admins)
 	if msg.IsCommand {
 		if commandDisabled(msg.Command) >= 0 {
@@ -77,30 +76,26 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		switch msg.Command {
 			// Enable a command
 			case "enable":
-				response = enableCommand(msg.Action)
+				msg.Respond(enableCommand(msg.Action))
 			// Disable a command
 			case "disable":
-				response = disableCommand(msg.Action)
+				msg.Respond(disableCommand(msg.Action))
 			
 			// Specific commands
 			case "roll":
-				response = processCommand(roll.New(), &msg)
+				processCommand(roll.New(), &msg)
 			case "prac":
-				response = processCommand(prac.New(), &msg)
+				processCommand(prac.New(), &msg)
 			case "match":
-				response = processCommand(match.New(), &msg)
+				processCommand(match.New(), &msg)
 		}		
 	} else {
-		response = forlulz.LOL(&msg)
-	}
-
-	if len(response) > 0 {
-		s.ChannelMessageSend(m.ChannelID, response)
+		forlulz.LOL(&msg)
 	}
 }
 
-func processCommand(cmd Command, msg *message.Message) string {
-	return cmd.Process(msg)
+func processCommand(cmd Command, msg *message.Message) {
+	cmd.Process(msg)
 }
 
 func commandDisabled(cmd string) int {
@@ -130,5 +125,5 @@ func disableCommand(cmd string) string {
 }
 
 type Command interface {
-    Process(msg *message.Message) string
+    Process(msg *message.Message)
 }

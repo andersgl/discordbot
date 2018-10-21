@@ -20,34 +20,35 @@ type rollResult struct {
 var rollResults = make(map[string]rollResult)
 var isRolling bool = false
 
-func (r Roll) Process(msg *message.Message) string {
+func (r Roll) Process(msg *message.Message) {
 	switch msg.Action {
 		case "start":
-			return r.startContest(msg)
+			r.startContest(msg)
 		case "help":
-			return r.help()
+			r.help(msg)
 		default:
-			return r.rollNow(msg.User)
+			r.rollNow(msg)
 	}
 }
 
-func (r Roll) rollNow(user *message.User) string {
+func (r Roll) rollNow(msg *message.Message) {
 	result := randomInt(1,100)
 	if isRolling {
-		_, hasRolled := rollResults[user.Id]
+		_, hasRolled := rollResults[msg.User.Id]
 		if hasRolled {
-			return "You can only roll once!"
+			msg.Respond("You can only roll once!")
 		} else {
-			rollResults[user.Id] = rollResult{user, result}
-			return user.Username + " rolled, wait for results."
+			rollResults[msg.User.Id] = rollResult{msg.User, result}
+			msg.Respond(msg.User.Username + " rolled, wait for results.")
 		}
+	} else {
+		msg.Respond(msg.User.Username + " rolls ... " + strconv.Itoa(result))
 	}
-	return user.Username + " rolls ... " + strconv.Itoa(result)
 }
 
-func (r Roll) startContest(msg *message.Message) string {
+func (r Roll) startContest(msg *message.Message) {
 	if isRolling {
-		return "A contest is already rollin' ..."
+		msg.Respond("A contest is already rollin' ...")
 	}
 	timeout := 10
 	if len(msg.Args) > 0 {
@@ -74,7 +75,7 @@ func (r Roll) startContest(msg *message.Message) string {
 		response += " Prize: " + prize + "."
 	}
 	response += "\nResults will be announced in " + strconv.Itoa(timeout) + " seconds. Start rollin' rollin' rollin' ..."
-	return response
+	msg.Respond(response)
 }
 
 func (r Roll) finishContest(msg *message.Message) {
@@ -94,16 +95,16 @@ func (r Roll) finishContest(msg *message.Message) {
 	msg.Respond(response)
 }
 
-func (r Roll) help() string {
+func (r Roll) help(msg *message.Message) {
 	response := "**Commands:**\n"
 	helpers := []help.Help{
 		{"!roll", "just roll"},
-		{"!roll start <time> <prize here>", "start a roll contest for a specified time and prize"},
+		{"!roll start <time> <prize>", "start a roll contest for a specified time and prize"},
 	}
 	for _, helper := range helpers {
 		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
     }
-	return response
+	msg.Respond(response)
 }
 
 func New() Roll {

@@ -7,26 +7,26 @@ import (
 
 type Prac struct {}
 
-func (p Prac) Process(msg *message.Message) string {
+func (p Prac) Process(msg *message.Message) {
 	switch msg.Action {
 		case "help":
-			return p.help()
+			p.help(msg)
 		case "yes", "no":
-			return p.update(msg)
+			p.update(msg)
 		default:
-			return p.summary(msg)
+			p.summary(msg)
 	}
 }
 
-func (p Prac) summary(msg *message.Message) string {
-	return "Summary"
+func (p Prac) summary(msg *message.Message) {
+	msg.Respond("Summary")
 }
 
-func (p Prac) update(msg *message.Message) string {
-	return "Summary"
+func (p Prac) update(msg *message.Message) {
+	msg.Respond("Summary")
 }
 
-func (p Prac) help() string {
+func (p Prac) help(msg *message.Message) {
 	response := "**Commands:**\n"
 	helpers := []help.Help{
 		{"!prac", "get a prac summary"},
@@ -37,7 +37,7 @@ func (p Prac) help() string {
 	for _, helper := range helpers {
 		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
     }
-	return response
+	msg.Respond(response)
 }
 
 func New() Prac {

@@ -7,26 +7,26 @@ import (
 
 type Match struct {}
 
-func (m Match) Process(msg *message.Message) string {
+func (m Match) Process(msg *message.Message) {
 	switch msg.Action {
 		case "help":
-			return m.help()
+			m.help(msg)
 		case "yes", "no":
-			return m.update(msg)
+			m.update(msg)
 		default:
-			return m.summary(msg)
+			m.summary(msg)
 	}
 }
 
-func (m Match) summary(msg *message.Message) string {
-	return "Summary"
+func (m Match) summary(msg *message.Message) {
+	msg.Respond("Summary")
 }
 
-func (m Match) update(msg *message.Message) string {
-	return "Summary"
+func (m Match) update(msg *message.Message) {
+	msg.Respond("Summary")
 }
 
-func (m Match) help() string {
+func (m Match) help(msg *message.Message) {
 	response := "**Commands:**\n"
 	helpers := []help.Help{
 		{"!match", "get a prac summary"},
@@ -37,7 +37,7 @@ func (m Match) help() string {
 	for _, helper := range helpers {
 		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
     }
-	return response
+	msg.Respond(response)
 }
 
 func New() Match {
