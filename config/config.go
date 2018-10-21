@@ -8,8 +8,8 @@ import (
 
 type Config struct {
     Token string `json:"Token"`
-	CommandTrigger string `json:"CommandTrigger"`
-	DisabledCmds []string `json:"DisabledCmds"`
+    CommandTrigger string `json:"CommandTrigger"`
+    DisabledCmds []string `json:"DisabledCmds"`
     Admins []string `json:"Admins"`
 }
 
