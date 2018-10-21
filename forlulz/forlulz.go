@@ -4,8 +4,8 @@ import (
 	"github.com/andersgl/discordbot/message"
 )
 
-func LOL(msg message.Message) string {
-	if msg.MessageCreate.Content == "cawer" {
+func LOL(msg *message.Message) string {
+	if msg.Content() == "cawer" {
 		return "KING CAWER!!!"
 	}
 	

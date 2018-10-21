@@ -7,7 +7,7 @@ import (
 
 type Prac struct {}
 
-func (p Prac) Process(msg message.Message) string {
+func (p Prac) Process(msg *message.Message) string {
 	switch msg.Action {
 		case "help":
 			return p.help()
@@ -18,11 +18,11 @@ func (p Prac) Process(msg message.Message) string {
 	}
 }
 
-func (p Prac) summary(msg message.Message) string {
+func (p Prac) summary(msg *message.Message) string {
 	return "Summary"
 }
 
-func (p Prac) update(msg message.Message) string {
+func (p Prac) update(msg *message.Message) string {
 	return "Summary"
 }
 
@@ -38,4 +38,8 @@ func (p Prac) help() string {
 		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
     }
 	return response
+}
+
+func New() Prac {
+	return Prac{}
 }

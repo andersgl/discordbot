@@ -1,5 +1,0 @@
-{
-    "Token": "<bot-token>",
-    "CommandTrigger": "!",
-    "DisabledCmds": ["prac"]
-}

@@ -13,14 +13,14 @@ import (
 type Roll struct {}
 
 type rollResult struct {
-	user message.User
+	user *message.User
 	result int
 }
 
 var rollResults = make(map[string]rollResult)
 var isRolling bool = false
 
-func (r Roll) Process(msg message.Message) string {
+func (r Roll) Process(msg *message.Message) string {
 	switch msg.Action {
 		case "start":
 			return r.startContest(msg)
@@ -31,11 +31,11 @@ func (r Roll) Process(msg message.Message) string {
 	}
 }
 
-func (r Roll) rollNow(user message.User) string {
+func (r Roll) rollNow(user *message.User) string {
 	result := randomInt(1,100)
 	if isRolling {
-		_, ok := rollResults[user.Id]
-		if ok {
+		_, hasRolled := rollResults[user.Id]
+		if hasRolled {
 			return "You can only roll once!"
 		} else {
 			rollResults[user.Id] = rollResult{user, result}
@@ -45,7 +45,7 @@ func (r Roll) rollNow(user message.User) string {
 	return user.Username + " rolls ... " + strconv.Itoa(result)
 }
 
-func (r Roll) startContest(msg message.Message) string {
+func (r Roll) startContest(msg *message.Message) string {
 	if isRolling {
 		return "A contest is already rollin' ..."
 	}
@@ -77,7 +77,7 @@ func (r Roll) startContest(msg message.Message) string {
 	return response
 }
 
-func (r Roll) finishContest(msg message.Message) {
+func (r Roll) finishContest(msg *message.Message) {
 	isRolling = false
 	response := "``` Results\n"
 	var max rollResult
@@ -91,7 +91,7 @@ func (r Roll) finishContest(msg message.Message) {
 	response += "```"
 	rollResults = make(map[string]rollResult)
 	
-	msg.Session.ChannelMessageSend(msg.Channel, response)
+	msg.Respond(response)
 }
 
 func (r Roll) help() string {
@@ -104,6 +104,10 @@ func (r Roll) help() string {
 		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
     }
 	return response
+}
+
+func New() Roll {
+	return Roll{}
 }
 
 func randomInt(min, max int) int {

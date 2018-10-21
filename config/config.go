@@ -1,4 +1,4 @@
-package conf
+package config
 
 import (
 	"os"
@@ -6,15 +6,16 @@ import (
 	"fmt"
 )
 
-type Conf struct {
+type Config struct {
     Token string `json:"Token"`
 	CommandTrigger string `json:"CommandTrigger"`
 	DisabledCmds []string `json:"DisabledCmds"`
+    Admins []string `json:"Admins"`
 }
 
-func Load() Conf {
-    var config Conf
-    configFile, err := os.Open("conf/config.json")
+func Load() Config {
+    var config Config
+    configFile, err := os.Open("config/config.json")
     defer configFile.Close()
     if err != nil {
         fmt.Println("error", err.Error())

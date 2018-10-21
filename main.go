@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/andersgl/discordbot/conf"
+	"github.com/andersgl/discordbot/config"
 	"github.com/andersgl/discordbot/message"
 	"github.com/andersgl/discordbot/forlulz"
 
@@ -21,7 +21,7 @@ import (
 // Variables used for command line parameters
 var (
 	token string
-	Config conf.Conf
+	conf config.Config
 )
 
 func init() {
@@ -30,13 +30,13 @@ func init() {
 }
 
 func main() {
-	Config = conf.Load()
+	conf = config.Load()
 	if len(token) > 0 {
-		Config.Token = token
+		conf.Token = token
 	}
 
 	// Create a new Discord session using the provided bot token.
-	dg, err := discordgo.New("Bot " + Config.Token)
+	dg, err := discordgo.New("Bot " + conf.Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
@@ -63,12 +63,12 @@ func main() {
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Ignore all messages created by the bot itself
-	if m.Author.ID == s.State.User.ID {
+	if m.Author.ID == s.State.User.ID || m.Author.Bot {
 		return
 	}
 
 	var response string
-	msg := message.Parse(m, s, Config.CommandTrigger)
+	msg := message.New(m, s, conf.CommandTrigger, conf.Admins)
 	if msg.IsCommand {
 		if commandDisabled(msg.Command) >= 0 {
 			return
@@ -84,14 +84,14 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			
 			// Specific commands
 			case "roll":
-				response = processCommand(roll.Roll{}, msg)
+				response = processCommand(roll.New(), &msg)
 			case "prac":
-				response = processCommand(prac.Prac{}, msg)
+				response = processCommand(prac.New(), &msg)
 			case "match":
-				response = processCommand(match.Match{}, msg)
+				response = processCommand(match.New(), &msg)
 		}		
 	} else {
-		response = forlulz.LOL(msg)
+		response = forlulz.LOL(&msg)
 	}
 
 	if len(response) > 0 {
@@ -99,12 +99,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func processCommand(cmd Command, msg message.Message) string {
+func processCommand(cmd Command, msg *message.Message) string {
 	return cmd.Process(msg)
 }
 
 func commandDisabled(cmd string) int {
-    for k, a := range Config.DisabledCmds {
+    for k, a := range conf.DisabledCmds {
         if a == cmd {
             return k
         }
@@ -115,22 +115,20 @@ func commandDisabled(cmd string) int {
 func enableCommand(cmd string) string {
 	index := commandDisabled(cmd)
 	if index >= 0 {
-		Config.DisabledCmds = append(Config.DisabledCmds[:index], Config.DisabledCmds[index+1:]...)
+		conf.DisabledCmds = append(conf.DisabledCmds[:index], conf.DisabledCmds[index+1:]...)
 		return cmd + " is now enabled."
 	}
-	fmt.Println("enabled", Config.DisabledCmds)
 	return cmd + " already enabled."
 }
 
 func disableCommand(cmd string) string {
 	if commandDisabled(cmd) == -1 {
-		Config.DisabledCmds = append(Config.DisabledCmds, cmd)
+		conf.DisabledCmds = append(conf.DisabledCmds, cmd)
 		return cmd + " is now disabled."
 	}
-	fmt.Println("disabled", Config.DisabledCmds)
 	return cmd + " already disabled."
 }
 
 type Command interface {
-    Process(msg message.Message) string
+    Process(msg *message.Message) string
 }

@@ -7,7 +7,7 @@ import (
 
 type Match struct {}
 
-func (m Match) Process(msg message.Message) string {
+func (m Match) Process(msg *message.Message) string {
 	switch msg.Action {
 		case "help":
 			return m.help()
@@ -18,11 +18,11 @@ func (m Match) Process(msg message.Message) string {
 	}
 }
 
-func (m Match) summary(msg message.Message) string {
+func (m Match) summary(msg *message.Message) string {
 	return "Summary"
 }
 
-func (m Match) update(msg message.Message) string {
+func (m Match) update(msg *message.Message) string {
 	return "Summary"
 }
 
@@ -38,4 +38,8 @@ func (m Match) help() string {
 		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
     }
 	return response
+}
+
+func New() Match {
+	return Match{}
 }
