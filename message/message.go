@@ -46,10 +46,10 @@ func New(m *discordgo.MessageCreate, s *discordgo.Session, trigger string, admin
 		Session: s}
 	parts := strings.Split(m.Content[1:], " ")
 	if len(parts) > 0 {
-		msg.Command = parts[0]
+		msg.Command = strings.ToLower(parts[0])
 	}
 	if len(parts) > 1 {
-		msg.Action = parts[1]
+		msg.Action = strings.ToLower(parts[1])
 	}
 	if len(parts) > 2 {
 		msg.Args = parts[2:]
