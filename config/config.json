@@ -1,6 +1,7 @@
 {
     "Token": "<bot-token>",
     "CommandTrigger": "!",
-    "DisabledCmds": ["prac"],
-    "Admins": ["234726309698207744"]
+    "DisabledCmds": [],
+    "Admins": ["234726309698207744"],
+    "PracGames": ["cs", "fortnite"]
 }

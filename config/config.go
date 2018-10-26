@@ -11,6 +11,7 @@ type Config struct {
     CommandTrigger string `json:"CommandTrigger"`
     DisabledCmds []string `json:"DisabledCmds"`
     Admins []string `json:"Admins"`
+    PracGames []string `json:"PracGames"`
 }
 
 func Load() Config {

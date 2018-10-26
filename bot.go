@@ -85,7 +85,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			case "roll":
 				processCommand(roll.New(), &msg)
 			case "prac":
-				processCommand(prac.New(), &msg)
+				processCommand(prac.New(conf.PracGames), &msg)
 			case "match":
 				processCommand(match.New(), &msg)
 		}		
