@@ -1,20 +1,20 @@
 package prac
 
 import (
-	"github.com/andersgl/discordbot/message"
 	"github.com/andersgl/discordbot/help"
+	"github.com/andersgl/discordbot/message"
 )
 
-type Prac struct {}
+type Prac struct{}
 
 func (p Prac) Process(msg *message.Message) {
 	switch msg.Action {
-		case "help":
-			p.help(msg)
-		case "yes", "no":
-			p.update(msg)
-		default:
-			p.summary(msg)
+	case "help":
+		p.help(msg)
+	case "yes", "no":
+		p.update(msg)
+	default:
+		p.summary(msg)
 	}
 }
 
@@ -36,7 +36,7 @@ func (p Prac) help(msg *message.Message) {
 	}
 	for _, helper := range helpers {
 		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
-    }
+	}
 	msg.Respond(response)
 }
 

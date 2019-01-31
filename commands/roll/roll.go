@@ -3,17 +3,17 @@ package roll
 import (
 	"math/rand"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 
-	"github.com/andersgl/discordbot/message"
 	"github.com/andersgl/discordbot/help"
+	"github.com/andersgl/discordbot/message"
 )
 
-type Roll struct {}
+type Roll struct{}
 
 type rollResult struct {
-	user *message.User
+	user   *message.User
 	result int
 }
 
@@ -22,17 +22,17 @@ var isRolling bool = false
 
 func (r Roll) Process(msg *message.Message) {
 	switch msg.Action {
-		case "start":
-			r.startContest(msg)
-		case "help":
-			r.help(msg)
-		default:
-			r.rollNow(msg)
+	case "start":
+		r.startContest(msg)
+	case "help":
+		r.help(msg)
+	default:
+		r.rollNow(msg)
 	}
 }
 
 func (r Roll) rollNow(msg *message.Message) {
-	result := randomInt(1,100)
+	result := randomInt(1, 100)
 	if isRolling {
 		_, hasRolled := rollResults[msg.User.Id]
 		if hasRolled {
@@ -63,7 +63,7 @@ func (r Roll) startContest(msg *message.Message) {
 	isRolling = true
 	time.AfterFunc(time.Duration(timeout)*time.Second, func() {
 		r.finishContest(msg)
-    })
+	})
 
 	var prize string
 	if len(msg.Args) > 1 {
@@ -91,7 +91,7 @@ func (r Roll) finishContest(msg *message.Message) {
 	response += "... and the winner is: " + max.user.Username
 	response += "```"
 	rollResults = make(map[string]rollResult)
-	
+
 	msg.Respond(response)
 }
 
@@ -103,7 +103,7 @@ func (r Roll) help(msg *message.Message) {
 	}
 	for _, helper := range helpers {
 		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
-    }
+	}
 	msg.Respond(response)
 }
 
@@ -113,5 +113,5 @@ func New() Roll {
 
 func randomInt(min, max int) int {
 	rand.Seed(time.Now().Unix())
-    return rand.Intn(max - min) + min
+	return rand.Intn(max-min) + min
 }

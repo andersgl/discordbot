@@ -1,6 +1,6 @@
 package help
 
 type Help struct {
-	Cmd string
+	Cmd  string
 	Desc string
 }

@@ -1,20 +1,20 @@
 package match
 
 import (
-	"github.com/andersgl/discordbot/message"
 	"github.com/andersgl/discordbot/help"
+	"github.com/andersgl/discordbot/message"
 )
 
-type Match struct {}
+type Match struct{}
 
 func (m Match) Process(msg *message.Message) {
 	switch msg.Action {
-		case "help":
-			m.help(msg)
-		case "yes", "no":
-			m.update(msg)
-		default:
-			m.summary(msg)
+	case "help":
+		m.help(msg)
+	case "yes", "no":
+		m.update(msg)
+	default:
+		m.summary(msg)
 	}
 }
 
@@ -36,7 +36,7 @@ func (m Match) help(msg *message.Message) {
 	}
 	for _, helper := range helpers {
 		response += "**" + helper.Cmd + "** - " + helper.Desc + "\n"
-    }
+	}
 	msg.Respond(response)
 }
 

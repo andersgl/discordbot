@@ -7,19 +7,19 @@ import (
 )
 
 type User struct {
-	Id string
+	Id       string
 	Username string
-	Admin bool
+	Admin    bool
 }
 
 type Message struct {
-	IsCommand bool
-	Command string
-	Action string
-	Args []string
-	User *User
+	IsCommand     bool
+	Command       string
+	Action        string
+	Args          []string
+	User          *User
 	MessageCreate *discordgo.MessageCreate
-	Session *discordgo.Session
+	Session       *discordgo.Session
 }
 
 func (msg Message) Respond(response string) {
@@ -36,14 +36,14 @@ func (msg Message) Content() string {
 
 func New(m *discordgo.MessageCreate, s *discordgo.Session, trigger string, admins []string) Message {
 	user := User{
-		Id: m.Author.ID, 
+		Id:       m.Author.ID,
 		Username: m.Author.Username,
-		Admin: userIsAdmin(m.Author.ID, admins)}
+		Admin:    userIsAdmin(m.Author.ID, admins)}
 	msg := Message{
-		IsCommand: strings.HasPrefix(m.Content, trigger), 
-		User: &user, 
+		IsCommand:     strings.HasPrefix(m.Content, trigger),
+		User:          &user,
 		MessageCreate: m,
-		Session: s}
+		Session:       s}
 	parts := strings.Split(m.Content[1:], " ")
 	if len(parts) > 0 {
 		msg.Command = strings.ToLower(parts[0])
@@ -59,9 +59,9 @@ func New(m *discordgo.MessageCreate, s *discordgo.Session, trigger string, admin
 
 func userIsAdmin(userId string, admins []string) bool {
 	for _, id := range admins {
-        if id == userId {
-            return true
-        }
-    }
+		if id == userId {
+			return true
+		}
+	}
 	return false
 }
