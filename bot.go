@@ -5,23 +5,25 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
 
-	"github.com/bwmarrin/discordgo"
 	"github.com/andersgl/discordbot/config"
-	"github.com/andersgl/discordbot/message"
 	"github.com/andersgl/discordbot/forlulz"
+	"github.com/andersgl/discordbot/message"
+	"github.com/bwmarrin/discordgo"
 
 	// Command packages go here
-	"github.com/andersgl/discordbot/commands/roll"
-	"github.com/andersgl/discordbot/commands/prac"
 	"github.com/andersgl/discordbot/commands/match"
+	"github.com/andersgl/discordbot/commands/prac"
+	"github.com/andersgl/discordbot/commands/roll"
 )
 
 // Variables used for command line parameters
 var (
 	token string
-	conf config.Config
+	conf  config.Config
 )
 
 func init() {
@@ -72,23 +74,44 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if commandDisabled(msg.Command) >= 0 {
 			return
 		}
-		
+
 		switch msg.Command {
-			// Enable a command
-			case "enable":
-				msg.Respond(enableCommand(msg.Action))
-			// Disable a command
-			case "disable":
-				msg.Respond(disableCommand(msg.Action))
-			
-			// Specific commands
-			case "roll":
-				processCommand(roll.New(), &msg)
-			case "prac":
-				processCommand(prac.New(), &msg)
-			case "match":
-				processCommand(match.New(), &msg)
-		}		
+		case "commands":
+			var files []string
+			response := "```Root commands:\n"
+
+			root := "./commands"
+			err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+				if info.IsDir() && info.Name() != "commands" {
+					files = append(files, path)
+				}
+				return nil
+			})
+			if err != nil {
+				panic(err)
+			}
+			for _, file := range files {
+				response += "!" + strings.TrimPrefix(file, "commands/") + "\n"
+			}
+
+			response += "```"
+			msg.Respond(response)
+
+		// Enable a command
+		case "enable":
+			msg.Respond(enableCommand(msg.Action))
+		// Disable a command
+		case "disable":
+			msg.Respond(disableCommand(msg.Action))
+
+		// Specific commands
+		case "roll":
+			processCommand(roll.New(), &msg)
+		case "prac":
+			processCommand(prac.New(), &msg)
+		case "match":
+			processCommand(match.New(), &msg)
+		}
 	} else {
 		forlulz.LOL(&msg)
 	}
@@ -99,12 +122,12 @@ func processCommand(cmd Command, msg *message.Message) {
 }
 
 func commandDisabled(cmd string) int {
-    for k, a := range conf.DisabledCmds {
-        if a == cmd {
-            return k
-        }
-    }
-    return -1
+	for k, a := range conf.DisabledCmds {
+		if a == cmd {
+			return k
+		}
+	}
+	return -1
 }
 
 func enableCommand(cmd string) string {
@@ -125,5 +148,5 @@ func disableCommand(cmd string) string {
 }
 
 type Command interface {
-    Process(msg *message.Message)
+	Process(msg *message.Message)
 }
